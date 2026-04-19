@@ -50,8 +50,14 @@ coverage.
 ## Latest known-good
 
 ```
-Version: <plugin version tested>
-Date:    <YYYY-MM-DD>
-Notes:   <observed agent_id/agent_type values, any deviations,
-          anything worth flagging>
+Version: 0.1.3
+Date:    2026-04-19
+Notes:   SessionStart input JSON observed via SECOND_MIND_DEBUG.
+         Fields present: session_id, transcript_path, cwd,
+         agent_type, hook_event_name, source, model.
+         agent_id: absent for main-session --agent.
+         agent_type: "second-mind:brainstorm" (plugin-namespaced).
+         source: "startup" on fresh launch.
+         Fields expected by docs but absent in payload:
+         permission_mode.
 ```

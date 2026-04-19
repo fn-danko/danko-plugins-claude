@@ -17,8 +17,12 @@ is_brainstorm_agent() {
   local agent
   agent="$(jq -r '.agent_id // .agent_type // empty' <<<"$input")"
   if [[ -n "$agent" ]]; then
-    [[ "$agent" == "brainstorm" ]] && return 0
-    return 1
+    # Plugin-scoped agents arrive namespaced as <plugin>:<agent>; accept
+    # both bare and namespaced forms.
+    case "$agent" in
+      brainstorm|*:brainstorm) return 0 ;;
+      *) return 1 ;;
+    esac
   fi
 
   local transcript

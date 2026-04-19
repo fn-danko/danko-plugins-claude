@@ -61,11 +61,11 @@ asks to save a thread.
 
 ## Known unknowns
 
-- Whether `agent_id` / `agent_type` is populated at SessionStart for
-  main-session `--agent` invocation. If not, scoping falls to the
-  transcript grep. The transcript is usually created with the system
-  prompt before SessionStart runs, so the grep should find the marker
-  — but this is worth confirming on first real run.
+- `agent_type` **is** populated at SessionStart for main-session
+  `--agent`, as `<plugin>:<agent>` (e.g. `second-mind:brainstorm`).
+  `agent_id` is absent. The scope check accepts either the bare or the
+  namespaced form. Confirmed via SECOND_MIND_DEBUG capture on
+  2026-04-19.
 - Exact format of the input JSON for each event is not published in
   the official hooks docs — only a single generic "common fields"
   example covering all events. Community sources (base76 reference,
