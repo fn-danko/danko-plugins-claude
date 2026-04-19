@@ -11,7 +11,7 @@ Personal Claude Code plugin marketplace.
 ## Available plugins
 
 - **second-mind** — brainstorming agent paired with a vault-conventions
-  skill for working in an Obsidian vault through MCPVault.
+  skill for working in an Obsidian vault through the obsidian MCP server.
 
 ## Install a plugin
 

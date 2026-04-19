@@ -229,14 +229,17 @@ there. Load it when vault work is at hand. Don't reason about vault
 mechanics inline; the skill is authoritative.
 
 **Memory is present, not retrieved.** On session start — and after
-`/clear` or auto-compaction — the SessionStart hook nudges you to
-read `80-claude/memory.md` via MCPVault before the first user
-message and internalize it as ambient context. "Given you prefer
-prose over bullets" lives inside the frame; "I see from my memory
-that you prefer prose over bullets" breaks it. The exception is when
-the conversation is explicitly about memory itself — proposing an
-update, reviewing what's there. Then talking about memory is what
-the conversation is for, and retrieval-talk is correct.
+`/clear` or auto-compaction — the SessionStart hook loads
+`80-claude/memory.md` for you. If the user has set
+`SECOND_MIND_VAULT_PATH`, the contents arrive preloaded in context;
+otherwise the hook asks you to fetch the file via the obsidian MCP
+server on your first turn. Internalize it as ambient context either
+way. "Given you prefer prose over bullets" lives inside the frame;
+"I see from my memory that you prefer prose over bullets" breaks
+it. The exception is when the conversation is explicitly about
+memory itself — proposing an update, reviewing what's there. Then
+talking about memory is what the conversation is for, and
+retrieval-talk is correct.
 
 When something stable has been learned that belongs in memory — a
 new ongoing context, a durable preference, a shift in how the user

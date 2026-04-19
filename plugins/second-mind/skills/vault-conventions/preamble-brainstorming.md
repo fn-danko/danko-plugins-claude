@@ -4,7 +4,7 @@ Operational rules for vault work. Your system prompt carries the vault's vocabul
 
 ## Access
 
-Use MCPVault tools for every vault operation; tool names come from MCP discovery. Never raw filesystem operations — MCPVault handles frontmatter safety and path validation that raw writes don't.
+Use the obsidian MCP server's tools for every vault operation; tool names come from MCP discovery. Never raw filesystem operations — the server handles frontmatter safety and path validation that raw writes don't.
 
 ## Writing
 
@@ -42,6 +42,6 @@ Load a module when a task needs depth. Most operations are covered above.
 
 ## Memory and threads
 
-SessionStart nudges you to read `80-claude/memory.md` via MCPVault on startup, after `/clear`, and after auto-compaction — whenever context has been lost. On resume the previous transcript still carries it, so nothing re-injects. The hook is wired to you specifically; other agents don't receive it.
+On startup, after `/clear`, and after auto-compaction — whenever context has been lost — the SessionStart hook loads `80-claude/memory.md` for you. If the user has set `SECOND_MIND_VAULT_PATH`, the contents arrive preloaded in your context and you do not need to fetch anything. Otherwise the hook asks you to read the file via the obsidian MCP server on your first turn. Either way, treat memory as ambient. On resume the previous transcript still carries it, so nothing re-injects. The hook is wired to you specifically; other agents don't receive it.
 
 Thread-writing is prompt-driven. When the user signals end-of-session, or asks explicitly to save a thread, apply the bar in `claude-space.md`. Most sessions end without a thread — that's the default.

@@ -8,10 +8,18 @@
 # On resume the previous transcript still carries whatever the agent read
 # last session, so re-injection would be redundant.
 #
-# First iteration: defer the actual vault read to the agent. We inject an
-# instruction asking the agent to read `80-claude/memory.md` via MCPVault
-# as its first action, silently. This keeps the plugin independent of the
-# MCPVault vault-path configuration.
+# Memory read strategy
+#
+#   If SECOND_MIND_VAULT_PATH is set and $vault/80-claude/memory.md
+#   exists, the hook reads it from the filesystem and injects the
+#   contents directly. The agent sees memory as ambient context on
+#   startup with no tool call, matching the "memory is present, not
+#   retrieved" frame.
+#
+#   Otherwise the hook falls back to instructing the agent to read
+#   memory.md via the obsidian MCP server on its first turn. The
+#   fallback is lossier (the agent has to invoke tools and may narrate
+#   the lookup), but keeps the plugin usable before the env var is set.
 
 set -euo pipefail
 
@@ -38,9 +46,22 @@ esac
 
 is_brainstorm_agent "$input" || exit 0
 
-jq -n '{
-  hookSpecificOutput: {
-    hookEventName: "SessionStart",
-    additionalContext: "Session start. Before the first user message, read `80-claude/memory.md` via MCPVault and internalize it as ambient context. Memory is present, not retrieved — do not narrate or announce the lookup; just let what is there shape how you engage."
-  }
-}'
+vault_path="${SECOND_MIND_VAULT_PATH:-}"
+memory_file="${vault_path%/}/80-claude/memory.md"
+
+if [[ -n "$vault_path" && -f "$memory_file" ]]; then
+  memory_contents="$(cat "$memory_file")"
+  jq -n --arg mem "$memory_contents" '{
+    hookSpecificOutput: {
+      hookEventName: "SessionStart",
+      additionalContext: ("Your memory, loaded from `80-claude/memory.md`. Treat as ambient context you already carry — do not narrate or announce this block, and do not re-read the file during this session unless the conversation is about memory itself.\n\n" + $mem)
+    }
+  }'
+else
+  jq -n '{
+    hookSpecificOutput: {
+      hookEventName: "SessionStart",
+      additionalContext: "Session start. Before the first user message, read `80-claude/memory.md` via the obsidian MCP server and internalize it as ambient context. Memory is present, not retrieved — do not narrate or announce the lookup; just let what is there shape how you engage.\n\n(Note for the user: set `SECOND_MIND_VAULT_PATH` in your shell to the vault root to let this hook inject memory directly and skip the tool call.)"
+    }
+  }'
+fi

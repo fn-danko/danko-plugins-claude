@@ -2,7 +2,7 @@
 
 Claude Code plugin pairing a brainstorming agent with a vault-conventions
 skill, so Claude can act as a thinking partner that shares an Obsidian
-vault with the user through MCPVault.
+vault with the user through the obsidian MCP server.
 
 ## Contents
 
@@ -31,9 +31,23 @@ hooks/
 
 ## Dependencies
 
-- **MCPVault** — all vault reads and writes go through MCPVault, never raw
-  filesystem. If MCPVault is not available, the skill tells the user and
-  stops.
+- **obsidian MCP server** — agent-side vault reads and writes go through
+  this server (the plugin has been developed against
+  [`@bitbonsai/mcpvault`](https://github.com/bitbonsai/mcpvault), but any
+  Obsidian-flavored MCP server with equivalent tools should work). Never
+  raw filesystem from the agent. If the server is not available, the
+  skill tells the user and stops.
+
+## Configuration
+
+Optional environment variable:
+
+- `SECOND_MIND_VAULT_PATH` — absolute path to the Obsidian vault root.
+  When set, the SessionStart hook reads `80-claude/memory.md` directly
+  from the filesystem and injects it as ambient context on session
+  start. Without it, the hook falls back to asking the agent to fetch
+  memory via the obsidian MCP server on its first turn (slower, shows
+  up as a tool call in the transcript).
 
 ## Identity marker
 

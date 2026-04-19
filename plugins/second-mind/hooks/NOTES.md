@@ -8,11 +8,14 @@ dropped (see bottom of this file).
 Both the hook script and any future additions use `scripts/_scope.sh`.
 Two-step check:
 
-1. `agent_id` / `agent_type` in the hook input JSON. These are
-   documented for SubagentStart / SubagentStop; not reliably populated
-   at SessionStart for main-session `--agent` invocation.
+1. `agent_id` / `agent_type` in the hook input JSON. `agent_type` is
+   populated at SessionStart for main-session `--agent` as
+   `<plugin>:<agent>` (e.g. `second-mind:brainstorm`); the scope helper
+   accepts both the namespaced and the bare form. `agent_id` is absent.
 2. Fallback: grep the transcript file for the `identity:
    brainstorming-agent` marker the agent's system prompt carries.
+   Still there as a safety net for edge cases where `agent_type` is
+   unexpectedly missing.
 
 Any other session no-ops silently.
 
@@ -30,15 +33,47 @@ On `resume` we do nothing — the previous transcript still carries
 whatever the agent read last session, so re-injection would be
 redundant.
 
-The injected `additionalContext` tells the agent to read
-`80-claude/memory.md` via MCPVault before the first user message and to
-internalize it silently. Deliberate choice for this iteration: defer
-the vault read to the agent, so the plugin does not need to know the
-vault path (MCPVault already holds that configuration).
+### Memory read strategy
 
-Trade-off: the read shows up as a tool call in the transcript, so the
-"memory is present, not retrieved" frame from the system prompt is
-approximate. Revisit if it feels wrong in real use.
+Two paths, decided at hook runtime.
+
+**Preferred: filesystem read.** If `SECOND_MIND_VAULT_PATH` is set and
+`$vault/80-claude/memory.md` exists, the hook reads it directly and
+emits the contents as `additionalContext`. The agent sees memory as
+ambient context on startup with no tool call, matching the "memory is
+present, not retrieved" frame cleanly.
+
+**Fallback: nudge.** If the env var is unset or the file is missing,
+the hook emits an instruction asking the agent to read `memory.md` via
+the obsidian MCP server on its first turn, plus a note to the user
+suggesting they set the env var. The fallback is lossier — the read
+shows up as a tool call in the transcript and the agent has to
+ToolSearch/load the obsidian MCP server's tools before it can fetch — but keeps the plugin
+usable before the env var is set.
+
+The plugin deliberately does not try to share a vault-path source with
+the MCP server. `@bitbonsai/mcpvault` reads its vault path exclusively
+from a CLI positional argument (no env var, no config file), so any
+"single source" story would require the user to refactor their MCP
+config, which is outside the plugin's scope.
+
+### Output envelope
+
+SessionStart requires the stdout JSON wrapped in `hookSpecificOutput`:
+
+```json
+{
+  "hookSpecificOutput": {
+    "hookEventName": "SessionStart",
+    "additionalContext": "..."
+  }
+}
+```
+
+Top-level `additionalContext` is silently ignored — the harness falls
+back to treating the raw stdout as plain text, so the literal JSON
+string leaks into context. Verified empirically during first-run
+debugging.
 
 ## Why Stop was dropped
 

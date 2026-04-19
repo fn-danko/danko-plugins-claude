@@ -35,17 +35,18 @@ toggle.
 | 5 | `source` field present with value `startup`                          | Inspect the logged JSON                                                                  | `"source": "startup"`                                                                |        |
 | 6 | `agent_id` / `agent_type` populated for main-session `--agent`       | Inspect the logged JSON                                                                  | Record observed value; empty is expected per research                                |        |
 | 7 | Scope fallback works when `agent_id` empty                           | If #6 is empty: `grep 'identity: brainstorming-agent' $transcript_path` (from logged JSON)| Match found — `_scope.sh` fallback will succeed                                      |        |
-| 8 | `additionalContext` injected                                         | First agent turn: watch for an MCPVault read of `80-claude/memory.md`                    | Tool call happens without user prompting                                             |        |
+| 8a| Memory injected from filesystem (preferred path)                     | `export SECOND_MIND_VAULT_PATH=/abs/path/to/vault`; fresh session; ask agent to summarize its memory | Agent recites memory content without any tool call                                   |        |
+| 8b| Memory nudge fallback                                                | Unset `SECOND_MIND_VAULT_PATH`; fresh session; observe first turn                        | Agent reads `80-claude/memory.md` via `mcp__obsidian__*` on first turn               |        |
 | 9 | `/clear` re-fires the hook                                           | Inside the session: `/clear`; check log                                                  | New log line with `"source": "clear"`                                                |        |
 | 10| Resume does NOT re-inject                                            | `claude --resume` the session from #1                                                    | Either no new log line, or `"source": "resume"` line and the script exited silently  |        |
 | 11| Auto-compact re-fires with `source: "compact"`                       | Drive the session long enough to trigger auto-compaction                                 | New log line with `"source": "compact"`; agent re-reads memory                       |        |
-| 12| Non-brainstorm session skipped                                       | Plain `claude` (no `--agent`) in the same dir                                            | No log line, no MCPVault read attempted                                              |        |
+| 12| Non-brainstorm session skipped                                       | Plain `claude` (no `--agent`) in the same dir                                            | No log line, no memory injection attempted                                            |        |
 | 13| Validator clean                                                      | `/plugin validate .` at marketplace root                                                 | Passes                                                                               |        |
 
 ## Priority order
 
-1 → 4 → 5/6 → 7 → 8. Those answer the biggest unknowns quickly. Rest is
-coverage.
+1 → 4 → 5/6 → 7 → 8a/8b. Those answer the biggest unknowns quickly.
+Rest is coverage.
 
 ## Latest known-good
 

@@ -29,11 +29,11 @@ The linked library item is where project documentation, specs, and decisions for
 
 ## Access
 
-Use MCPVault tools for every vault operation; tool names come from MCP discovery. Never raw filesystem operations — MCPVault handles frontmatter safety and path validation that raw writes don't.
+Use the obsidian MCP server's tools for every vault operation; tool names come from MCP discovery. Never raw filesystem operations — the server handles frontmatter safety and path validation that raw writes don't.
 
 ## Reads
 
-Anywhere except `80-claude/`. Read the linked library item freely to inform the work; fall back to MCPVault's search when you don't know a filename. Expect to read library items regularly to pick up specs, architecture notes, and decisions.
+Anywhere except `80-claude/`. Read the linked library item freely to inform the work; fall back to the obsidian MCP server's search when you don't know a filename. Expect to read library items regularly to pick up specs, architecture notes, and decisions.
 
 ## Writes
 

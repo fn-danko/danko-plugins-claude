@@ -1,6 +1,6 @@
 ---
 name: vault-conventions
-description: "Operational rules for working in the user's Obsidian vault through MCPVault. Load whenever touching vault notes: reading project documentation, writing up decisions or learnings, adding to library items, creating atoms, updating maps, or any other vault read or write. Covers folder semantics, naming, extraction, linking, and frontmatter conventions."
+description: "Operational rules for working in the user's Obsidian vault through the obsidian MCP server. Load whenever touching vault notes: reading project documentation, writing up decisions or learnings, adding to library items, creating atoms, updating maps, or any other vault read or write. Covers folder semantics, naming, extraction, linking, and frontmatter conventions."
 ---
 
 # Vault conventions
@@ -17,4 +17,4 @@ If you're unsure which you are, default to `preamble-generic.md`. Treating yours
 
 ## Dependency
 
-This skill assumes MCPVault is installed and configured. Vault reads and writes go through MCPVault's tools, never raw filesystem operations. If MCPVault is unavailable, stop and tell the user.
+This skill assumes an obsidian MCP server is installed and configured (reference implementation: [`@bitbonsai/mcpvault`](https://github.com/bitbonsai/mcpvault)). Vault reads and writes go through its tools, never raw filesystem operations. If the server is unavailable, stop and tell the user.
