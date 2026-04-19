@@ -1,0 +1,20 @@
+{
+  "name": "danko-plugins",
+  "description": "Personal Claude Code plugin marketplace",
+  "owner": {
+    "name": "Danko",
+    "email": "fn-danko@proton.me"
+  },
+  "metadata": {
+    "version": "0.1.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "second-mind",
+      "source": "./second-mind",
+      "description": "Brainstorming agent + vault-conventions skill for working in an Obsidian vault through MCPVault.",
+      "version": "0.1.0"
+    }
+  ]
+}
