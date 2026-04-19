@@ -34,13 +34,23 @@ does not duplicate it.
 ## Adding a plugin
 
 1. Create `plugins/<name>/.claude-plugin/plugin.json`. Required field:
-   `name`. Recommended: `description`, `version`, `author`, `keywords`.
+   `name`. Recommended: `description`, `version`, `author`, `keywords`,
+   `license`.
 2. Add an entry to `.claude-plugin/marketplace.json` under `plugins`
-   with `name`, `source: "./<name>"`, `description`, `version`.
+   with required `name` and `source: "./plugins/<name>"`. Optional:
+   `description`, `version`, `license`, and any other plugin-manifest
+   field (merged with `plugin.json` per strict mode, default strict).
 3. Write `plugins/<name>/README.md` — what it does, how to install,
    dependencies.
 4. Add any agent / skill / hook / command files under their respective
    directories.
+
+### Source path resolution
+
+Relative `source` values starting with `./` are resolved **from the
+marketplace root** (the directory containing `.claude-plugin/`). Do not
+rely on `metadata.pluginRoot` while using `./`-prefixed sources — the
+prefix only applies to bare names like `"source": "my-plugin"`.
 
 ## Versioning
 
