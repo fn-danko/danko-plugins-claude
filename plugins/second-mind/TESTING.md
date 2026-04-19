@@ -4,21 +4,25 @@ Live-session tests to run after installing or updating the plugin. Mark
 results in-place as each is run. Keep the log of latest-known-good
 below the matrix.
 
-## Debug capture (run first, remove after)
+## Debug capture
 
-The SessionStart hook input JSON is not documented per-event. Capture
-it once so the rest of the tests can verify fields.
-
-Add one line to `hooks/scripts/on-session-start.sh`, just after
-`input="$(cat)"`:
+The SessionStart hook input JSON is not documented per-event. A gated
+debug capture lives in `hooks/scripts/on-session-start.sh`; enable it
+by setting the environment variable:
 
 ```bash
-echo "$input" >> "${CLAUDE_PLUGIN_DATA:-/tmp}/session-start.log"  # TEMP — remove after
+export SECOND_MIND_DEBUG=1
 ```
 
-Commit, push, bump plugin version (patch), re-install, trigger events.
-Inspect `${CLAUDE_PLUGIN_DATA}/session-start.log`. Remove the line and
-bump again when done.
+Then launch `claude --agent brainstorm` as usual. Raw hook input is
+appended (one JSON per line) to:
+
+```
+${CLAUDE_PLUGIN_DATA:-$TMPDIR/second-mind}/session-start.log
+```
+
+Unset `SECOND_MIND_DEBUG` to stop logging. No plugin bump needed to
+toggle.
 
 ## Test matrix
 
