@@ -119,10 +119,13 @@ the agent does not break the router.
 
 ## Open work
 
-- Real-world test of the SessionStart hook. Validate that `agent_id` is
-  populated for main-session `--agent` invocation and that the
-  transcript-grep fallback kicks in when it isn't. See `hooks/NOTES.md`.
-  Smoke-test checklist: `TESTING.md`.
+- Exercise the untested rows in `TESTING.md` (scope-fallback,
+  `/clear` and auto-compact re-fires, resume no-op, non-brainstorm
+  scoping, filesystem memory injection once `80-claude/memory.md`
+  exists).
+- Extend SessionStart to also list `80-claude/threads/` contents
+  alongside memory. Design sketch in `hooks/NOTES.md` under
+  "Planned".
 
 ## Install
 

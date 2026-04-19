@@ -94,6 +94,24 @@ and `claude-space.md` instruct the agent to check for open threads
 when the user signals end-of-session, or when the user explicitly
 asks to save a thread.
 
+## Planned — list open threads alongside memory
+
+Alongside the memory inject, the SessionStart hook should also list
+the contents of `$vault/80-claude/threads/` and include the filenames
+(or a short index) in `additionalContext`. Rationale: threads are the
+unresolved-work ledger; knowing what's open at session start is the
+natural counterpart to knowing what's in memory.
+
+Design sketch for the next iteration:
+
+- Same env-var gate (`SECOND_MIND_VAULT_PATH`). If set, list
+  `*.md` under `threads/`; if unset, add a nudge asking the agent to
+  list threads via the obsidian MCP server on its first turn.
+- Empty `threads/` → omit the section rather than say "no threads";
+  keep the injection terse.
+- Filenames only, not contents. Opening a thread is a deliberate act,
+  not something the hook should pre-load.
+
 ## Known unknowns
 
 - `agent_type` **is** populated at SessionStart for main-session
