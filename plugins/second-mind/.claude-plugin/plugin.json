@@ -1,7 +1,7 @@
 {
   "name": "second-mind",
   "description": "Brainstorming agent plus vault-conventions skill for working in the user's Obsidian vault through the obsidian MCP server.",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "author": {
     "name": "Danko",
     "email": "fn-danko@proton.me"

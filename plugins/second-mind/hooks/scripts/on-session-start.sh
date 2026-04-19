@@ -58,6 +58,18 @@ if [[ -n "$vault_path" && -f "$memory_file" ]]; then
     }
   }'
 else
+  # Diagnostic: env var set but memory file unreadable. The user probably
+  # has a typo in the path or has not yet created 80-claude/memory.md.
+  # Log both to stderr (shown in the hook output block of the transcript)
+  # and to a persistent diagnostics log so troubleshooting doesn't
+  # require catching the stderr in the moment.
+  if [[ -n "$vault_path" ]]; then
+    diag_dir="${CLAUDE_PLUGIN_DATA:-${TMPDIR:-/tmp}/second-mind}"
+    mkdir -p "$diag_dir"
+    msg="SECOND_MIND_VAULT_PATH is set to '$vault_path' but '$memory_file' is missing or unreadable. Falling back to the MCP-read nudge. Create the file or fix the path to use the preferred injection path."
+    printf '[%s] %s\n' "$(date -Iseconds)" "$msg" | tee -a "$diag_dir/diagnostics.log" >&2
+  fi
+
   jq -n '{
     hookSpecificOutput: {
       hookEventName: "SessionStart",

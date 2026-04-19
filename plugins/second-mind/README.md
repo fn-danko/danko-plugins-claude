@@ -40,14 +40,56 @@ hooks/
 
 ## Configuration
 
-Optional environment variable:
+### `SECOND_MIND_VAULT_PATH` (recommended)
 
-- `SECOND_MIND_VAULT_PATH` — absolute path to the Obsidian vault root.
-  When set, the SessionStart hook reads `80-claude/memory.md` directly
-  from the filesystem and injects it as ambient context on session
-  start. Without it, the hook falls back to asking the agent to fetch
-  memory via the obsidian MCP server on its first turn (slower, shows
-  up as a tool call in the transcript).
+Absolute path to the Obsidian vault root. Set this in your shell rc so
+it's present for every Claude Code session. The value should not have
+a trailing slash.
+
+```bash
+# bash / zsh
+export SECOND_MIND_VAULT_PATH=/absolute/path/to/your/vault
+```
+
+```fish
+set -Ux SECOND_MIND_VAULT_PATH /absolute/path/to/your/vault
+```
+
+**With the variable set** (preferred path):
+
+- SessionStart reads `$SECOND_MIND_VAULT_PATH/80-claude/memory.md`
+  from the filesystem and injects the contents directly into the
+  agent's context at session start.
+- The agent sees memory as ambient context with zero tool calls — the
+  "memory is present, not retrieved" frame from the agent prompt holds
+  cleanly.
+
+**Without it** (fallback path):
+
+- SessionStart emits a nudge asking the agent to read memory via the
+  obsidian MCP server on its first turn.
+- Memory still loads, but the agent has to ToolSearch → load the
+  server's tools → call `read_note` before replying.
+- The tool call shows up in the transcript, which makes the frame
+  approximate rather than exact.
+
+**If the variable is set but the memory file is missing**, the hook
+falls back to the nudge and logs the mismatch both to stderr and to:
+
+```
+${CLAUDE_PLUGIN_DATA}/diagnostics.log
+```
+
+Check that file if the preferred path doesn't seem to be firing —
+usually a typo in the path or a vault that doesn't yet have a
+`80-claude/memory.md`.
+
+### `SECOND_MIND_DEBUG` (optional)
+
+Set `SECOND_MIND_DEBUG=1` to log raw SessionStart input JSON (one
+object per line) to `${CLAUDE_PLUGIN_DATA}/session-start.log`. Useful
+when diagnosing per-event schema questions — see `hooks/NOTES.md` for
+context. Leave unset in normal use.
 
 ## Identity marker
 
