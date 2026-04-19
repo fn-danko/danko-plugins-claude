@@ -49,7 +49,10 @@ is_brainstorm_agent "$input" || exit 0
 vault_path="${SECOND_MIND_VAULT_PATH:-}"
 memory_file="${vault_path%/}/80-claude/memory.md"
 
+nudge_base="Session start. Before the first user message, read \`80-claude/memory.md\` via the obsidian MCP server and internalize it as ambient context. Memory is present, not retrieved — do not narrate or announce the lookup; just let what is there shape how you engage."
+
 if [[ -n "$vault_path" && -f "$memory_file" ]]; then
+  # Preferred path: read the memory file from disk and inject.
   memory_contents="$(cat "$memory_file")"
   jq -n --arg mem "$memory_contents" '{
     hookSpecificOutput: {
@@ -57,23 +60,28 @@ if [[ -n "$vault_path" && -f "$memory_file" ]]; then
       additionalContext: ("Your memory, loaded from `80-claude/memory.md`. Treat as ambient context you already carry — do not narrate or announce this block, and do not re-read the file during this session unless the conversation is about memory itself.\n\n" + $mem)
     }
   }'
-else
-  # Diagnostic: env var set but memory file unreadable. The user probably
-  # has a typo in the path or has not yet created 80-claude/memory.md.
-  # Log both to stderr (shown in the hook output block of the transcript)
-  # and to a persistent diagnostics log so troubleshooting doesn't
-  # require catching the stderr in the moment.
-  if [[ -n "$vault_path" ]]; then
-    diag_dir="${CLAUDE_PLUGIN_DATA:-${TMPDIR:-/tmp}/second-mind}"
-    mkdir -p "$diag_dir"
-    msg="SECOND_MIND_VAULT_PATH is set to '$vault_path' but '$memory_file' is missing or unreadable. Falling back to the MCP-read nudge. Create the file or fix the path to use the preferred injection path."
-    printf '[%s] %s\n' "$(date -Iseconds)" "$msg" | tee -a "$diag_dir/diagnostics.log" >&2
-  fi
+elif [[ -n "$vault_path" ]]; then
+  # Env var is set but the file can't be read — almost always a typo in
+  # the path, or the vault doesn't yet have 80-claude/memory.md. Tell
+  # the agent the specific mismatch (so it can relay to the user) and
+  # also write to stderr + diagnostics log for out-of-band inspection.
+  diag_dir="${CLAUDE_PLUGIN_DATA:-${TMPDIR:-/tmp}/second-mind}"
+  mkdir -p "$diag_dir"
+  diag_msg="SECOND_MIND_VAULT_PATH is set to '$vault_path' but '$memory_file' is missing or unreadable. Falling back to the MCP-read nudge. Fix the path or create the file to use the preferred injection path."
+  printf '[%s] %s\n' "$(date -Iseconds)" "$diag_msg" | tee -a "$diag_dir/diagnostics.log" >&2
 
-  jq -n '{
+  jq -n --arg nudge "$nudge_base" --arg vault "$vault_path" --arg mem "$memory_file" '{
     hookSpecificOutput: {
       hookEventName: "SessionStart",
-      additionalContext: "Session start. Before the first user message, read `80-claude/memory.md` via the obsidian MCP server and internalize it as ambient context. Memory is present, not retrieved — do not narrate or announce the lookup; just let what is there shape how you engage.\n\n(Note for the user: set `SECOND_MIND_VAULT_PATH` in your shell to the vault root to let this hook inject memory directly and skip the tool call.)"
+      additionalContext: ($nudge + "\n\n(Note for the user: `SECOND_MIND_VAULT_PATH` is set to `" + $vault + "` but `" + $mem + "` was not found. Check the path points at the vault root that contains `80-claude/`, or create the memory file.)")
+    }
+  }'
+else
+  # Env var unset — suggest the user set it to get the faster path.
+  jq -n --arg nudge "$nudge_base" '{
+    hookSpecificOutput: {
+      hookEventName: "SessionStart",
+      additionalContext: ($nudge + "\n\n(Note for the user: set `SECOND_MIND_VAULT_PATH` in your shell to the vault root to let this hook inject memory directly and skip the tool call.)")
     }
   }'
 fi
