@@ -28,13 +28,13 @@ toggle.
 
 | # | Test                                                                 | How                                                                                      | Expect                                                                               | Status |
 |:--|:---------------------------------------------------------------------|:-----------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------|:-------|
-| 1 | Agent launches                                                       | `claude --agent brainstorm` in a throwaway dir                                           | Session starts; agent voice matches `brainstorm.md`                                  |        |
-| 2 | Identity marker reaches system prompt                                | In-session: ask the agent to quote its first body line                                   | It returns `identity: brainstorming-agent`                                           |        |
-| 3 | `vault-conventions` skill preloaded                                  | Ask a question answered only in `claude-space.md` (e.g. "what earns a thread?")          | Answer aligns with skill; agent did not have to be pointed at the skill              |        |
-| 4 | SessionStart hook fires on startup                                   | Fresh `claude --agent brainstorm`; check debug log exists                                | Log contains one new JSON line                                                       |        |
-| 5 | `source` field present with value `startup`                          | Inspect the logged JSON                                                                  | `"source": "startup"`                                                                |        |
-| 6 | `agent_id` / `agent_type` populated for main-session `--agent`       | Inspect the logged JSON                                                                  | Record observed value; empty is expected per research                                |        |
-| 7 | Scope fallback works when `agent_id` empty                           | If #6 is empty: `grep 'identity: brainstorming-agent' $transcript_path` (from logged JSON)| Match found — `_scope.sh` fallback will succeed                                      |        |
+| 1 | Agent launches                                                       | `claude --agent brainstorm` in a throwaway dir                                           | Session starts; agent voice matches `brainstorm.md`                                  | pass   |
+| 2 | Identity marker reaches system prompt                                | Vault-topic question; agent routes via marker to `preamble-brainstorming.md`             | Correct branch taken (brainstorming, not generic)                                    | pass   |
+| 3 | `vault-conventions` skill loads on demand                            | Ask something that only `claude-space.md` answers                                        | Agent auto-loads skill, branches to correct preamble, pulls supporting file          | pass   |
+| 4 | SessionStart hook fires on startup                                   | Fresh `claude --agent brainstorm`; check debug log exists                                | Log contains one new JSON line                                                       | pass   |
+| 5 | `source` field present with value `startup`                          | Inspect the logged JSON                                                                  | `"source": "startup"`                                                                | pass   |
+| 6 | `agent_type` populated for main-session `--agent`                    | Inspect the logged JSON                                                                  | `agent_type = "second-mind:brainstorm"`; `agent_id` absent                           | pass   |
+| 7 | Scope fallback exercised when primary check fails                    | Manually delete `.agent_type` from captured JSON, pipe into `_scope.sh`                  | Transcript grep finds `identity: brainstorming-agent`                                |        |
 | 8a| Memory injected from filesystem (preferred path)                     | `export SECOND_MIND_VAULT_PATH=/abs/path/to/vault`; fresh session; ask agent to summarize its memory | Agent recites memory content without any tool call                                   |        |
 | 8b| Memory nudge fallback                                                | Unset `SECOND_MIND_VAULT_PATH`; fresh session; observe first turn                        | Agent reads `80-claude/memory.md` via `mcp__obsidian__*` on first turn               |        |
 | 9 | `/clear` re-fires the hook                                           | Inside the session: `/clear`; check log                                                  | New log line with `"source": "clear"`                                                |        |
@@ -51,14 +51,28 @@ Rest is coverage.
 ## Latest known-good
 
 ```
-Version: 0.1.3
+Version: 0.1.5
 Date:    2026-04-19
-Notes:   SessionStart input JSON observed via SECOND_MIND_DEBUG.
-         Fields present: session_id, transcript_path, cwd,
-         agent_type, hook_event_name, source, model.
-         agent_id: absent for main-session --agent.
-         agent_type: "second-mind:brainstorm" (plugin-namespaced).
-         source: "startup" on fresh launch.
-         Fields expected by docs but absent in payload:
-         permission_mode.
+
+SessionStart input JSON (SECOND_MIND_DEBUG capture):
+  Fields present: session_id, transcript_path, cwd,
+  agent_type, hook_event_name, source, model.
+  agent_id: absent for main-session --agent.
+  agent_type: "second-mind:brainstorm" (plugin-namespaced).
+  source: "startup" on fresh launch.
+  Fields expected by docs but absent in payload: permission_mode.
+
+Agent + skill:
+  --agent brainstorm launches cleanly; agent voice matches prompt.
+  Identity marker (body line 9) reaches system prompt — skill
+  router branches correctly.
+  vault-conventions skill auto-loads when a vault topic comes up;
+  preamble-brainstorming.md loads, then claude-space.md as a
+  supporting module when the question requires it.
+
+Not yet exercised:
+  Scope-fallback transcript grep (agent_type worked, didn't need
+  it); /clear and auto-compact re-fires; resume no-op; filesystem
+  memory injection (needs 80-claude/memory.md to exist in vault);
+  non-brainstorm session scoping.
 ```
