@@ -21,8 +21,12 @@ skills/
     folders.md                      shared: per-folder reference
     naming.md                       shared: naming conventions
 hooks/
-  NOTES.md                          design spec for SessionStart + Stop hooks
-                                    (not yet implemented)
+  hooks.json                        event registrations
+  NOTES.md                          implementation notes, trade-offs,
+                                    known unknowns
+  scripts/
+    _scope.sh                       shared: brainstorm-agent scoping
+    on-session-start.sh             SessionStart handler
 ```
 
 ## Dependencies
@@ -59,7 +63,9 @@ the agent does not break the router.
 
 ## Open work
 
-- SessionStart and Stop hooks — see `hooks/NOTES.md`.
+- Real-world test of the SessionStart hook. Validate that `agent_id` is
+  populated for main-session `--agent` invocation and that the
+  transcript-grep fallback kicks in when it isn't. See `hooks/NOTES.md`.
 
 ## Install
 

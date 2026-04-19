@@ -40,6 +40,8 @@ Load a module when a task needs depth. Most operations are covered above.
 
 **Structural question about the vault itself** (why a folder exists, whether to add one) → `99-meta/vault-structure.md` directly. Not part of this skill.
 
-## Hooks
+## Memory and threads
 
-SessionStart injects `80-claude/memory.md` into context before the conversation begins. Stop prompts at session end to check for open threads. Both are wired to you specifically; other agents don't receive them. Details in `claude-space.md`.
+SessionStart nudges you to read `80-claude/memory.md` via MCPVault on startup, after `/clear`, and after auto-compaction — whenever context has been lost. On resume the previous transcript still carries it, so nothing re-injects. The hook is wired to you specifically; other agents don't receive it.
+
+Thread-writing is prompt-driven. When the user signals end-of-session, or asks explicitly to save a thread, apply the bar in `claude-space.md`. Most sessions end without a thread — that's the default.

@@ -1,35 +1,73 @@
-# Hooks — design notes (not yet implemented)
+# Hooks — first iteration
 
-Two hooks, both firing only for the brainstorming agent. Other agents use
-`--resume` for continuity and do not need these.
+One hook ships, `SessionStart`. `Stop` was considered and deliberately
+dropped (see bottom of this file).
+
+## Scoping
+
+Both the hook script and any future additions use `scripts/_scope.sh`.
+Two-step check:
+
+1. `agent_id` / `agent_type` in the hook input JSON. These are
+   documented for SubagentStart / SubagentStop; not reliably populated
+   at SessionStart for main-session `--agent` invocation.
+2. Fallback: grep the transcript file for the `identity:
+   brainstorming-agent` marker the agent's system prompt carries.
+
+Any other session no-ops silently.
 
 ## SessionStart
 
-Fires when a brainstorm-agent session starts. Injects the contents of
-`80-claude/memory.md` (via MCPVault) into the agent's context before the
-first user message.
+Script: `scripts/on-session-start.sh`.
 
-Rationale: memory must be present, not retrieved. The agent should speak
-from the frame ("given you prefer prose over bullets") rather than
-about it ("I see from my memory that…"). See
-`skills/vault-conventions/claude-space.md`.
+Fires when the conversation context has been lost or never existed:
 
-## Stop
+- `startup` — fresh session
+- `clear` — `/clear` issued mid-session
+- `compact` — auto-compaction dropped older turns
 
-Fires at session end. Prompts the agent to scan the conversation for
-open threads worth writing to `80-claude/threads/`.
+On `resume` we do nothing — the previous transcript still carries
+whatever the agent read last session, so re-injection would be
+redundant.
 
-Bar for writing a thread (from `claude-space.md`):
+The injected `additionalContext` tells the agent to read
+`80-claude/memory.md` via MCPVault before the first user message and to
+internalize it silently. Deliberate choice for this iteration: defer
+the vault read to the agent, so the plugin does not need to know the
+vault path (MCPVault already holds that configuration).
 
-- Unresolved question the conversation was actively working on, or
-- A decision about to be made and not made.
+Trade-off: the read shows up as a tool call in the transcript, so the
+"memory is present, not retrieved" frame from the system prompt is
+approximate. Revisit if it feels wrong in real use.
 
-Default is no thread. Concluded conversations do not earn one.
+## Why Stop was dropped
 
-## Implementation sketch
+The `Stop` hook in Claude Code fires after **every** agent turn, not at
+session end. The original design — "nudge the agent to check for open
+threads at session end" — does not map onto it:
 
-`hooks/hooks.json` will declare the two events; shell scripts under
-`hooks/scripts/` do the work and invoke MCPVault. The matcher must scope
-each hook to the brainstorming agent only — likely by inspecting the
-agent identity frontmatter or a dedicated env flag. Exact mechanism to
-be decided together.
+- A once-per-session guard would fire on the first turn boundary, when
+  there is nothing to check.
+- A no-guard version would nudge on every turn, polluting context and
+  burning tokens, and the agent cannot tell whether a given turn will
+  be its last.
+- `SessionEnd` fires at actual termination but cannot give the agent
+  another turn, so it cannot drive thread-writing.
+
+Instead, thread-writing is prompt-driven. The agent's system prompt
+and `claude-space.md` instruct the agent to check for open threads
+when the user signals end-of-session, or when the user explicitly
+asks to save a thread.
+
+## Known unknowns
+
+- Whether `agent_id` / `agent_type` is populated at SessionStart for
+  main-session `--agent` invocation. If not, scoping falls to the
+  transcript grep. The transcript is usually created with the system
+  prompt before SessionStart runs, so the grep should find the marker
+  — but this is worth confirming on first real run.
+- Exact format of the input JSON for each event is not published in
+  the official hooks docs — only a single generic "common fields"
+  example covering all events. Community sources (base76 reference,
+  FrancisBourre gist) describe `source` on SessionStart and
+  `stop_hook_active` on Stop; we rely on `source` here.

@@ -14,7 +14,7 @@ Mechanics for working in `80-claude/`. Your system prompt covers what the folder
 
 ## memory.md and memories/
 
-Memory is present in context from SessionStart — you don't read it during the session, it's already there.
+Memory is loaded at session start via MCPVault — treat it as ambient context, not as something to retrieve mid-session.
 
 **What belongs.** Stable, cross-cutting facts about the user, their context, their preferences. The test from the agent prompt applies: if a fact only matters when working on X, it belongs with X, not in memory. One additional heuristic — if updating this fact every few months would feel churny, it's probably not memory material. Memory is for things that are durable by nature.
 
@@ -66,10 +66,8 @@ Ephemeral working files. Intermediate thinking, test notes, anything that would 
 
 Naming inside scratch doesn't need a convention; pick something that makes sense during the session.
 
-## Hooks
+## When memory loads and when threads get written
 
-**SessionStart** injects `memory.md` at conversation start. The injection is silent — it's already in context when you read the first user message. Treat its contents as known, not retrieved.
+**Memory loads at session start.** On startup, after `/clear`, and after auto-compaction — whenever context has been lost — the SessionStart hook nudges you to read `memory.md` via MCPVault. On resume the previous transcript still carries what you read, so nothing re-injects. Treat memory as ambient, not as something retrieved mid-session. The hook is wired to you specifically; other agents don't receive it and don't read `80-claude/`.
 
-**Stop** fires at session end and asks you to check for open threads. This is when thread-writing happens, not mid-session. The default answer is "no thread"; write one only when the bar above is met.
-
-Both hooks are wired to you specifically. Other agents don't receive them and don't read `80-claude/`.
+**Threads are written at session end, prompt-driven.** When the user signals they're wrapping up or asks explicitly to save a thread, apply the bar above. Most sessions end without a thread — that's the default. The user can ask for a thread at any point, not only at the end.

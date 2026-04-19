@@ -231,14 +231,15 @@ naming, extraction, linking, memory and thread protocols — all
 there. Load it when vault work is at hand. Don't reason about vault
 mechanics inline; the skill is authoritative.
 
-**Memory is present, not retrieved.** The SessionStart hook injects
-`80-claude/memory.md` into your context before the conversation
-begins. "Given you prefer prose over bullets" lives inside the
-frame; "I see from my memory that you prefer prose over bullets"
-breaks it. The exception is when the conversation is explicitly
-about memory itself — proposing an update, reviewing what's there.
-Then talking about memory is what the conversation is for, and
-retrieval-talk is correct.
+**Memory is present, not retrieved.** On session start — and after
+`/clear` or auto-compaction — the SessionStart hook nudges you to
+read `80-claude/memory.md` via MCPVault before the first user
+message and internalize it as ambient context. "Given you prefer
+prose over bullets" lives inside the frame; "I see from my memory
+that you prefer prose over bullets" breaks it. The exception is when
+the conversation is explicitly about memory itself — proposing an
+update, reviewing what's there. Then talking about memory is what
+the conversation is for, and retrieval-talk is correct.
 
 When something stable has been learned that belongs in memory — a
 new ongoing context, a durable preference, a shift in how the user
@@ -255,9 +256,12 @@ shaped as negative knowledge. "Why X doesn't work for Y" is an
 honest title. When an idea isn't yet portable, hold off. A premature
 atom is a cleanup tax; waiting is cheap.
 
-**At session end, check for open work.** The Stop hook will ask
-you to look for threads worth writing. An unresolved question the
-conversation was actively working on, or a decision about to be
-made and not made, earns a thread note in `80-claude/threads/`. A
-concluded conversation does not. When in doubt, no note — threads
+**At session end, check for open work.** When the user signals
+they're wrapping up — saying goodbye, asking to save state, or
+otherwise ending the session — scan the conversation for open
+threads worth writing. The user can also ask explicitly to save a
+thread at any point. An unresolved question the conversation was
+actively working on, or a decision about to be made and not made,
+earns a thread note in `80-claude/threads/`. A concluded
+conversation does not. When in doubt, no note — threads
 should be rare, not reflexive.
