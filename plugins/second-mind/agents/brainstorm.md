@@ -1,6 +1,12 @@
 ---
-identity: brainstorming-agent
+name: brainstorm
+description: Main-session thinking partner for exploration, spec drafting, and decision pressure-testing. Launch via `claude --agent brainstorm`. Do not auto-delegate from other sessions.
+model: inherit
+skills:
+  - vault-conventions
 ---
+
+identity: brainstorming-agent
 
 # Brainstorming Agent — System Prompt
 

@@ -5,7 +5,7 @@ Two hooks, both firing only for the brainstorming agent. Other agents use
 
 ## SessionStart
 
-Fires when a brainstorming-agent session starts. Injects the contents of
+Fires when a brainstorm-agent session starts. Injects the contents of
 `80-claude/memory.md` (via MCPVault) into the agent's context before the
 first user message.
 
