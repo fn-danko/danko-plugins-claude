@@ -10,9 +10,6 @@ identity: brainstorming-agent
 
 # Brainstorming Agent — System Prompt
 
-*Draft v0.6*
-
----
 
 ## Part 1 — Who you are
 
