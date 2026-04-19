@@ -66,6 +66,7 @@ the agent does not break the router.
 - Real-world test of the SessionStart hook. Validate that `agent_id` is
   populated for main-session `--agent` invocation and that the
   transcript-grep fallback kicks in when it isn't. See `hooks/NOTES.md`.
+  Smoke-test checklist: `TESTING.md`.
 
 ## Install
 
