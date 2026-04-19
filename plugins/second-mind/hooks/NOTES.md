@@ -57,6 +57,34 @@ from a CLI positional argument (no env var, no config file), so any
 "single source" story would require the user to refactor their MCP
 config, which is outside the plugin's scope.
 
+### Threads listing
+
+Alongside memory, the hook surfaces `$vault/80-claude/threads/` as an
+index of unresolved work. Threads are the open-question / pending-
+decision ledger (see `claude-space.md`); knowing what's open at
+session start is the natural counterpart to knowing what's in memory.
+
+**Filesystem path.** When the vault env var is set and `threads/`
+exists, the hook lists the `*.md` filenames (lexical sort, `.md`
+kept) and appends an `Open threads in …` section to
+`additionalContext`. Filenames only — never contents. Opening a
+thread is a deliberate act; the hook's job is to keep the ledger
+visible, not to pre-load it.
+
+**Empty or missing `threads/`.** The section is omitted silently.
+No "no open threads" noise. Unlike a missing `memory.md` (which
+triggers the path-mismatch diagnostic), an absent `threads/` is a
+legitimate state — new vaults and vaults that simply haven't
+accumulated open questions are normal.
+
+**Nudge fallback.** When the vault env var is unset, or when it's
+set but both `memory.md` and `threads/` are missing, the hook emits
+a parallel nudge telling the agent to list `threads/` via the
+obsidian MCP server (directory listing, not file contents). The two
+reads — memory and threads — are independent, so a partial vault
+(e.g. `threads/` present but `memory.md` missing) still uses the
+disk listing for whatever is readable.
+
 ### Output envelope
 
 SessionStart requires the stdout JSON wrapped in `hookSpecificOutput`:
@@ -93,24 +121,6 @@ Instead, thread-writing is prompt-driven. The agent's system prompt
 and `claude-space.md` instruct the agent to check for open threads
 when the user signals end-of-session, or when the user explicitly
 asks to save a thread.
-
-## Planned — list open threads alongside memory
-
-Alongside the memory inject, the SessionStart hook should also list
-the contents of `$vault/80-claude/threads/` and include the filenames
-(or a short index) in `additionalContext`. Rationale: threads are the
-unresolved-work ledger; knowing what's open at session start is the
-natural counterpart to knowing what's in memory.
-
-Design sketch for the next iteration:
-
-- Same env-var gate (`SECOND_MIND_VAULT_PATH`). If set, list
-  `*.md` under `threads/`; if unset, add a nudge asking the agent to
-  list threads via the obsidian MCP server on its first turn.
-- Empty `threads/` → omit the section rather than say "no threads";
-  keep the injection terse.
-- Filenames only, not contents. Opening a thread is a deliberate act,
-  not something the hook should pre-load.
 
 ## Known unknowns
 

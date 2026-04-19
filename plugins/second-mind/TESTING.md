@@ -42,11 +42,15 @@ toggle.
 | 11| Auto-compact re-fires with `source: "compact"`                       | Drive the session long enough to trigger auto-compaction                                 | New log line with `"source": "compact"`; agent re-reads memory                       |        |
 | 12| Non-brainstorm session skipped                                       | Plain `claude` (no `--agent`) in the same dir                                            | No log line, no memory injection attempted                                            |        |
 | 13| Validator clean                                                      | `/plugin validate .` at marketplace root                                                 | Passes                                                                               |        |
+| 14| Threads list injected when `threads/` has entries                    | `SECOND_MIND_VAULT_PATH` set; ≥2 `.md` files in `$vault/80-claude/threads/`; fresh session; ask agent what open threads it sees | Agent names the filenames with no tool call (they arrived as ambient context)        |        |
+| 15| Threads section omitted when `threads/` is empty                     | Empty `$vault/80-claude/threads/`; fresh session with `SECOND_MIND_DEBUG=1`              | Injected `additionalContext` contains no `Open threads in …` section                 |        |
+| 16| Threads section omitted when `threads/` is missing                   | No `$vault/80-claude/threads/` directory; fresh session                                  | Memory injected cleanly; no threads section, no diagnostic                           |        |
+| 17| Threads nudge present in vault-unset fallback                        | Unset `SECOND_MIND_VAULT_PATH`; fresh session                                            | Agent lists `80-claude/threads/` via `mcp__obsidian__list_directory` on first turn   |        |
 
 ## Priority order
 
-1 → 4 → 5/6 → 7 → 8a/8b. Those answer the biggest unknowns quickly.
-Rest is coverage.
+1 → 4 → 5/6 → 7 → 8a/8b → 14/15/16/17. Those answer the biggest
+unknowns quickly. Rest is coverage.
 
 ## Latest known-good
 
