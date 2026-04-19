@@ -6,5 +6,6 @@
     "name": "Danko",
     "email": "fn-danko@proton.me"
   },
-  "keywords": ["brainstorming", "obsidian", "vault", "mcpvault", "knowledge-management"]
+  "keywords": ["brainstorming", "obsidian", "vault", "mcpvault", "knowledge-management"],
+  "license": "MIT"
 }

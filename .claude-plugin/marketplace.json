@@ -9,6 +9,7 @@
     "version": "0.1.0",
     "pluginRoot": "./plugins"
   },
+  "license": "MIT",
   "plugins": [
     {
       "name": "second-mind",

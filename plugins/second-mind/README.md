@@ -75,3 +75,7 @@ From this marketplace:
 /plugin marketplace add fn-danko/danko-plugins
 /plugin install second-mind@danko-plugins
 ```
+
+## License
+
+MIT. See the `LICENSE` file at the root of the marketplace repo.

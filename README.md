@@ -33,3 +33,7 @@ plugins/
     commands/
     hooks/
 ```
+
+## License
+
+MIT. See `LICENSE`.
