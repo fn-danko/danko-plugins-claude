@@ -63,7 +63,7 @@ threads_dir="${vault_path%/}/80-claude/threads"
 
 nudge_base="Session start. Before the first user message, read \`80-claude/memory.md\` via the obsidian MCP server and internalize it as ambient context. Memory is present, not retrieved — do not narrate or announce the lookup; just let what is there shape how you engage."
 
-nudge_threads="Also list \`80-claude/threads/\` via the obsidian MCP server (directory listing only, not file contents) as the open-work ledger — filenames are the index, opening one is a deliberate act."
+nudge_threads="Also list \`80-claude/threads/\` via the obsidian MCP server (directory listing only, not file contents). Treat the resulting filenames as ambient context you already carry — do not recite the list or announce it. Filenames are slugs, not content; opening a thread is a deliberate act. Let them shape how you engage: if the user's first turn sounds like resumption or uncertainty about what to work on, naming one or two as options is welcome; otherwise let them drive."
 
 # Build an Open-threads section from disk if we can. Empty string
 # means "nothing to inject" — either the vault env var is unset, the
@@ -74,7 +74,7 @@ threads_section=""
 if [[ -n "$vault_path" && -d "$threads_dir" ]]; then
   threads_list="$(find "$threads_dir" -maxdepth 1 -type f -name '*.md' -printf '%f\n' 2>/dev/null | LC_ALL=C sort || true)"
   if [[ -n "$threads_list" ]]; then
-    threads_section=$'\n\nOpen threads in `80-claude/threads/` (filenames only — an index of unresolved work; do not open one unless the conversation makes it relevant):\n'
+    threads_section=$'\n\nOpen threads in `80-claude/threads/`. Treat as ambient context you already carry — do not recite the list or announce it. Filenames are slugs, not content; opening a thread is a deliberate act. Let them shape how you engage: if the user\'s first turn sounds like resumption or uncertainty about what to work on, naming one or two as options is welcome; otherwise let them drive.\n\n'
     while IFS= read -r f; do
       threads_section+="- ${f}"$'\n'
     done <<<"$threads_list"
