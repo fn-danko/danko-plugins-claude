@@ -69,6 +69,10 @@ Most tasks won't need a module. Load when depth is needed.
 
 **Writing a new note and unsure about naming** → `naming.md`.
 
+## Tooling gotchas
+
+The separately-installed `obsidian` skill documents MCP tool gotchas (`patch_note` matches inside frontmatter, `delete_note` requires exact-path confirmation, `move_note` vs `move_file` for binaries, `manage_tags` writes only to the frontmatter array). Load it when an MCP edge case surfaces. Complementary to this skill, not redundant.
+
 ## Brainstorming redirect
 
 If the user describes work that sounds like brainstorming — specifying, exploring, pressure-testing — point them at the brainstorming agent. That's a different session mode.

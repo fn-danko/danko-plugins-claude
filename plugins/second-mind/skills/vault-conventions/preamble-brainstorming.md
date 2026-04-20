@@ -40,6 +40,10 @@ Load a module when a task needs depth. Most operations are covered above.
 
 **Structural question about the vault itself** (why a folder exists, whether to add one) → `99-meta/vault-structure.md` directly. Not part of this skill.
 
+## Tooling gotchas and git sync
+
+The separately-installed `obsidian` skill documents MCP tool gotchas (`patch_note` matches inside frontmatter, `delete_note` requires exact-path confirmation, `move_note` vs `move_file` for binaries, `manage_tags` writes only to the frontmatter array) and a safe git-sync playbook. Load it when an MCP edge case surfaces or when vault git work is needed. Complementary to this skill, not redundant.
+
 ## Memory and threads
 
 On startup, after `/clear`, and after auto-compaction — whenever context has been lost — the SessionStart hook loads `80-claude/memory.md` for you. If the user has set `SECOND_MIND_VAULT_PATH`, the contents arrive preloaded in your context and you do not need to fetch anything. Otherwise the hook asks you to read the file via the obsidian MCP server on your first turn. Either way, treat memory as ambient. On resume the previous transcript still carries it, so nothing re-injects. The hook is wired to you specifically; other agents don't receive it.
