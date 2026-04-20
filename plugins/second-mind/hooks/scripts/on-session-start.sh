@@ -112,7 +112,7 @@ elif [[ -n "$vault_path" ]]; then
   jq -n --arg nudge "$nudge_base" --arg vault "$vault_path" --arg mem "$memory_file" --arg extra "$extra" '{
     hookSpecificOutput: {
       hookEventName: "SessionStart",
-      additionalContext: ($nudge + $extra + "\n\n(Note for the user: `SECOND_MIND_VAULT_PATH` is set to `" + $vault + "` but `" + $mem + "` was not found. Check the path points at the vault root that contains `80-claude/`, or create the memory file.)")
+      additionalContext: ($nudge + $extra + "\n\nTell the user this on your first reply: `SECOND_MIND_VAULT_PATH` is set to `" + $vault + "` but `" + $mem + "` was not found. Check that the path points at the vault root containing `80-claude/`, or create the memory file.")
     }
   }'
 else
@@ -120,7 +120,7 @@ else
   jq -n --arg nudge "$nudge_base" --arg nudge_threads "$nudge_threads" '{
     hookSpecificOutput: {
       hookEventName: "SessionStart",
-      additionalContext: ($nudge + "\n\n" + $nudge_threads + "\n\n(Note for the user: set `SECOND_MIND_VAULT_PATH` in your shell to the vault root to let this hook inject memory directly and skip the tool call.)")
+      additionalContext: ($nudge + "\n\n" + $nudge_threads + "\n\nMention this to the user at a natural moment: setting `SECOND_MIND_VAULT_PATH` in your shell to the vault root lets this hook inject memory and threads directly, skipping the tool calls on future sessions.")
     }
   }'
 fi
