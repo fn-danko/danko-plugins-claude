@@ -17,15 +17,29 @@ Atoms are portable one-idea notes. Library items are folders holding work the us
 
 ## Session startup
 
-When a coding session starts, link it to a vault project:
+When a coding session starts, link it to a vault project. The link is persisted in the project's `CLAUDE.md` as a single-line HTML comment at the top of the file:
+
+    <!-- vault-link: 40-library/foo -->
+
+The value is either a vault-root-relative path or the literal `none` (user chose not to link). `CLAUDE.md` auto-loads before this skill activates, so the marker is already in your context when session startup runs.
+
+**Marker present, folder exists** — linked. Operate silently; the linked library item is where project documentation, specs, and decisions for this session live.
+
+**Marker present, folder missing** — stale. Surface to the user: *"Linked folder `<path>` no longer exists in the vault — relink to a different path, or remove the link?"* On resolution, overwrite the marker with the new path or replace it with `vault-link: none`.
+
+**Marker present, value is `none`** — user previously chose not to link. Operate without a link. Do not re-prompt.
+
+**No marker** — run discovery, then persist the outcome:
 
 1. Take the basename of your current working directory (the folder name, not the full path).
 2. Check `40-library/` for an item with exactly that name.
-3. **One match** — tell the user: *"Linked to `40-library/<name>/`."* They can correct if wrong.
-4. **No match** — tell the user there's no linked vault project, and ask whether to create an empty `40-library/<basename>/`.
-5. **Multiple matches** — surface the situation and let the user pick.
+3. **One match** — tell the user: *"Linked to `40-library/<name>/`."* They can correct if wrong. Write the marker.
+4. **No match** — tell the user there's no matching vault project. Offer: create an empty `40-library/<basename>/` and link, link to a different existing path, or skip. Write the marker accordingly (`vault-link: <path>` or `vault-link: none`).
+5. **Multiple matches** — surface them and let the user pick, or skip. Write the marker accordingly.
 
-The linked library item is where project documentation, specs, and decisions for this session live. If there's no link, operate without one — don't guess a match.
+Writing the marker: a single-line HTML comment at the very top of `CLAUDE.md`, above any user prose. Create `CLAUDE.md` if it doesn't exist. If a previous marker is present, overwrite it in place. `CLAUDE.md` lives in the project source directory, not the vault — use filesystem tools for this write; the "no raw filesystem ops" rule under Access applies to vault operations only.
+
+If there's no link (marker is `none`, or discovery was skipped, or `CLAUDE.md` couldn't be written), operate without one. The "Confident" write tier in the next section doesn't apply — all vault edits fall under "Ask first."
 
 ## Access
 
