@@ -12,6 +12,10 @@ the tool descriptions leave out:
   registry, matching UID, `--pid=host`) that makes container sessions
   behave like local ones, plus the `~/.claude.json` bind-mount trap.
 
+- **Spawning sessions** locally or on a remote machine through a peer:
+  always with an explicit `--name`, in a directory the user already
+  trusted (the folder-trust dialog is what peers won't approve).
+
 It also sets working habits: say who is asking, keep requests scoped,
 never launder permissions through a peer, wait with `notify_when_idle`
 instead of polling, and verify a peer's results independently.

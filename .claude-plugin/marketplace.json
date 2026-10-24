@@ -20,7 +20,7 @@
       "name": "peer-messaging",
       "source": "./plugins/peer-messaging",
       "description": "Skill for talking to your other Claude Code sessions (local, Remote Control, cloud, Docker containers) with ListAgents/SendMessage, based on hands-on tests.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "license": "MIT"
     }
   ]
