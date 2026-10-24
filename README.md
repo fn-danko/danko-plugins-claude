@@ -12,6 +12,8 @@ Personal Claude Code plugin marketplace.
 
 - **second-mind** — brainstorming agent paired with a vault-conventions
   skill for working in an Obsidian vault through the obsidian MCP server.
+- **peer-messaging** — skill for messaging your other Claude Code sessions
+  (local, Remote Control, cloud, Docker containers).
 
 ## Install a plugin
 
