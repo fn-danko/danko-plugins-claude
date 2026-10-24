@@ -1,7 +1,7 @@
 {
   "name": "peer-messaging",
   "description": "Skill for talking to your other Claude Code sessions (local, Remote Control, cloud, Docker containers) with ListAgents/SendMessage, based on hands-on tests.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": {
     "name": "Danko",
     "email": "fn-danko@proton.me"

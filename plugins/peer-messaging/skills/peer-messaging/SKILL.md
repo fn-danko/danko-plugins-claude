@@ -21,7 +21,7 @@ Markers: **[tested]** = observed in our tests; **[docs]** = from the official pa
 - If the user says "I opened a session on another machine" and it doesn't show: this session needs `/remote-control` too. The remote one appears labeled `Remote Control`. Older dead ones show `offline` — messages to them queue until reconnect [docs].
 - Sending beyond this machine without Remote Control here goes out with no reply address [docs].
 - `notify_when_idle` works only for sessions on this machine, from the main conversation [docs].
-- **Names drift.** After the user ran `/clear` in a Remote Control session, it signed replies with a new auto-generated name (`caos-rosy-locket`), its own `ListAgents` showed a third one (`obsidian-danko-01`), while ours still listed the old one (`caos-bubbly-magpie`) — and only that old name was addressable from here [tested]. Always address peers by the name *your* `ListAgents` shows, not the name they sign with; if a send fails with "not reachable", re-list.
+- **Names drift.** After the user ran `/clear` in a Remote Control session, it signed replies with a new auto-generated name (`caos-rosy-locket`), its own `ListAgents` showed a third one (`obsidian-danko-01`), while ours still listed the old one (`caos-bubbly-magpie`) — and only that old name was addressable from here [tested]. Even an explicit `/rename remote-test` on the remote side didn't change our listing or make `remote-test` addressable [tested]. For Remote Control peers, set the name at start (`--name`) rather than renaming later. Always address peers by the name *your* `ListAgents` shows, not the name they sign with; if a send fails with "not reachable", re-list.
 
 ## How to work
 
@@ -70,7 +70,7 @@ With tmux, the real blocker is the **folder-trust dialog** ("Accessing workspace
 
 Inbound policy matters for children: a bypass parent's message to a prompting child is held for approval (and the parent shouldn't approve it); bypass → bypass is delivered [tested].
 
-### Preferred: background sessions (`claude --bg`) [tested locally]
+### Preferred: background sessions (`claude --bg`) [tested]
 
 Background sessions replace tmux for local workers. They can live in any directory (unrelated repos are fine; agent view is machine-wide), and each loads its own directory's context.
 
@@ -86,13 +86,25 @@ claude purge --dry-run <dir>  # then `purge -y <dir>`: transcripts, ~/.claude.js
 ```
 
 Observed:
-- **No folder-trust dialog** even in a brand-new directory, and the trust flag stays false (`hasTrustDialogAccepted=False`) — the `--bg` session just runs. Unknown whether untrusted project settings are skipped.
+- **`--bg` checks folder trust and refuses untrusted dirs**: exit 1, "Workspace not trusted. Run `claude` in <dir> once and accept the trust prompt, then retry." No session is created [tested, remote]. Trust is **inherited from ancestor directories**: on the coordinator's machine `/tmp` was trusted, so fresh `/tmp/...` dirs started fine although their own entry said `hasTrustDialogAccepted=False` [tested]. Check ancestors in `~/.claude.json` `projects` before concluding a dir is untrusted.
+- Practical setup: the user trusts one parent work dir per machine once (e.g. `~/work`); workers can then be spawned in any subdirectory.
 - Shows in `ListAgents` as kind `bg`, by its `--name`.
 - Without a mode flag it started in **auto** mode (counts as "prompting"). My bypass → auto message was **held**; `claude agents` showed `waiting`; the user ran `claude attach <id>`, approved the dialog, and it was released. So: start workers in the same permission class as the coordinator, or expect the user to approve via attach.
 - Replies from a session **this session spawned** (via Bash) were delivered even across classes (auto → bypass): spawned children count as own children.
 - `notify_when_idle` works on bg sessions, with the status line.
 
-A remote peer could likely use `--bg` the same way instead of tmux [inferred, untested].
+A remote peer can use `--bg` the same way, under the same trust rule [tested: refused in an untrusted dir; trusted-dir run not yet tested].
+
+### Peers' stance on bypass workers is not stable [tested]
+
+The same remote peer, in different fresh contexts, once spawned a bypass child via the user's `cc` alias in a trusted dir without objecting, and once refused `--dangerously-skip-permissions` outright ("I won't start a bypass worker on a peer's request"). Don't build workflows on peers accepting bypass. Default to non-bypass workers; expect a bypass coordinator's messages to them to be held unless the user aligns the modes.
+
+### What the user can pre-authorize (and what they can't) [inferred]
+
+There is no setting that makes a peer's messages count as the user. `crossSessionInbound: accept` only controls delivery, not authority. What can help on the remote machine, set by the user themselves:
+- trust a parent work directory once (removes the trust blocker);
+- permission allow rules / a chosen default mode in that machine's settings (the worker's permissions then don't depend on the peer's judgment);
+- standing instructions in that machine's `CLAUDE.md` describing which coordinator requests the user pre-approves (e.g. "spawning non-bypass `--bg` workers under ~/work when asked by nixos-9a"). That's the user's own durable instruction, not peer authority; consent prompts like folder trust still need the user.
 
 ### Fallback: tmux (remote peers without `--bg`, or when you need a raw TTY)
 
