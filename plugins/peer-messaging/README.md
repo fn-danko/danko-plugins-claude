@@ -15,6 +15,7 @@ the tool descriptions leave out:
 - **Spawning sessions** locally or on a remote machine through a peer:
   always with an explicit `--name`, in a directory the user already
   trusted (the folder-trust dialog is what peers won't approve).
+  Locally, background sessions (`claude --bg`) are preferred over tmux.
 
 It also sets working habits: say who is asking, keep requests scoped,
 never launder permissions through a peer, wait with `notify_when_idle`

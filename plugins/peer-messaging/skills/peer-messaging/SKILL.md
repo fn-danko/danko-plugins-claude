@@ -60,13 +60,41 @@ Settings: `crossSessionInbound` = `accept|hold|refuse` (also in `/config` → "M
 
 **Always give every session you spawn an explicit, unique name with `--name`** — `claude --name <role>-<n>` — whether you start it yourself or ask a remote peer to start it. Put the name in the request to the peer. Never rely on derived names: they collide across directories and drift after `/clear`.
 
-The real blocker is the **folder-trust dialog** ("Accessing workspace: … Is this a project you trust?"), shown the first time Claude Code opens an unseen directory [tested]:
+When to spawn sessions instead of subagents: the work must outlive this session, the user wants to watch/steer it, it needs another directory/repo with its own CLAUDE.md, MCP and settings, or it runs on another machine/container. Otherwise use subagents. Agent teams are tied to the lead's single project and lifetime, so they don't fit unrelated directories [docs].
+
+With tmux, the real blocker is the **folder-trust dialog** ("Accessing workspace: … Is this a project you trust?"), shown the first time Claude Code opens an unseen directory [tested]:
 - Peers refuse to accept it on a relayed request — it's the user's consent — and will pick "No, exit" or leave it open [tested]. Don't ask them to approve it.
 - In an already-trusted directory there's no dialog, and a peer spawned a bypass-mode child (`cc` alias = `claude --dangerously-skip-permissions`) there without objecting; it reported the flag unprompted [tested]. Peers inspect aliases before running them, so don't count on hiding what a command does.
 - So spawn children in directories the user has trusted (their project dirs, or the peer's own cwd). For a new work dir, ask the user to open `claude` there once and accept the dialog.
 - Peers also declined, before any dialog, to set up unattended bypass sessions with `--remote-control` on a relayed request [tested]. Children without Remote Control are only reachable through the peer that spawned them; that keeps one trust boundary. If the user wants direct access, they approve it in that session.
 
 Inbound policy matters for children: a bypass parent's message to a prompting child is held for approval (and the parent shouldn't approve it); bypass → bypass is delivered [tested].
+
+### Preferred: background sessions (`claude --bg`) [tested locally]
+
+Background sessions replace tmux for local workers. They can live in any directory (unrelated repos are fine; agent view is machine-wide), and each loads its own directory's context.
+
+```bash
+cd <dir> && claude --bg --name <role>-<n> [--dangerously-skip-permissions] "<initial prompt>"
+# prints: backgrounded · <short-id> · <name>
+claude agents --json          # machine-readable: id, name, kind, status (idle/busy/waiting), cwd, pid
+claude logs <id>              # recent terminal output (raw ANSI — strip it, or prefer messages)
+claude attach <id>            # user opens it in a terminal (e.g. to approve a held message)
+claude stop <id>              # clean stop: process, socket, registry entry gone; conversation kept
+claude rm <id>                # drop it from the list (transcripts and config entry stay)
+claude purge --dry-run <dir>  # then `purge -y <dir>`: transcripts, ~/.claude.json entry, history lines
+```
+
+Observed:
+- **No folder-trust dialog** even in a brand-new directory, and the trust flag stays false (`hasTrustDialogAccepted=False`) — the `--bg` session just runs. Unknown whether untrusted project settings are skipped.
+- Shows in `ListAgents` as kind `bg`, by its `--name`.
+- Without a mode flag it started in **auto** mode (counts as "prompting"). My bypass → auto message was **held**; `claude agents` showed `waiting`; the user ran `claude attach <id>`, approved the dialog, and it was released. So: start workers in the same permission class as the coordinator, or expect the user to approve via attach.
+- Replies from a session **this session spawned** (via Bash) were delivered even across classes (auto → bypass): spawned children count as own children.
+- `notify_when_idle` works on bg sessions, with the status line.
+
+A remote peer could likely use `--bg` the same way instead of tmux [inferred, untested].
+
+### Fallback: tmux (remote peers without `--bg`, or when you need a raw TTY)
 
 Run a child in tmux so it has a TTY, then inspect its screen:
 
